@@ -51,7 +51,7 @@ const updateFilter = (event: Event, id: number) => {
   }
 };
 
-const hidden = ref(false);
+const hidden = ref(true);
 </script>
 
 <template>
