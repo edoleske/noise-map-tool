@@ -57,7 +57,7 @@ const hidden = ref(true);
 <template>
   <div class="fixed rounded-lg w-full pb-2">
     <div
-      class="transition duration-300 flex gap-2 bg-neutral-900 w-full py-4"
+      class="transition duration-300 flex bg-neutral-900 gap-2 w-full py-4"
       :class="{
         absolute: hidden,
         block: !hidden,
@@ -66,8 +66,8 @@ const hidden = ref(true);
         '-z-10': hidden,
         'z-auto': !hidden,
       }">
-      <div class="border border-white w-fit p-4 flex flex-col gap-4 items-center" v-for="map in maps">
-        <p>Map {{ map.id }}</p>
+      <div class="border border-white w-fit p-4 flex flex-col gap-4 items-end" v-for="map in maps">
+        <p class="self-center">Map {{ map.id }}</p>
         <label>
           Amplitude
           <input type="number" :value="map.amplitude" @input="(event) => updateAmplitude(event, map.id)" />
@@ -84,7 +84,7 @@ const hidden = ref(true);
           Filter
           <input type="number" :value="map.filter" @input="(event) => updateFilter(event, map.id)" />
         </label>
-        <button type="button" class="bg-red-600 text-sm" @click="removeParameter(map.id)">Remove</button>
+        <button type="button" class="bg-red-600 text-sm self-center" @click="removeParameter(map.id)">Remove</button>
       </div>
       <button type="button" class="bg-blue-600 self-center" @click="addParameter">Add</button>
       <button type="button" class="bg-blue-600 self-center" @click="drawMap">Update</button>

@@ -36,10 +36,46 @@ function Lerp(t: number, a1: number, a2: number) {
 }
 
 function Grad(hash: number, x: number, y: number, z: number) {
-  const h = hash & 15;
-  const u = h < 8 ? x : y;
-  const v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-  return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+  switch (hash & 0xf) {
+    case 0x0:
+      return x + y;
+    case 0x1:
+      return -x + y;
+    case 0x2:
+      return x - y;
+    case 0x3:
+      return -x - y;
+    case 0x4:
+      return x + z;
+    case 0x5:
+      return -x + z;
+    case 0x6:
+      return x - z;
+    case 0x7:
+      return -x - z;
+    case 0x8:
+      return y + z;
+    case 0x9:
+      return -y + z;
+    case 0xa:
+      return y - z;
+    case 0xb:
+      return -y - z;
+    case 0xc:
+      return y + x;
+    case 0xd:
+      return -y + z;
+    case 0xe:
+      return y - x;
+    case 0xf:
+      return -y - z;
+    default:
+      return 0;
+  }
+  // const h = hash & 15;
+  // const u = h < 8 ? x : y;
+  // const v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+  // return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
 function Noise2D(x: number, y: number, z: number) {
@@ -114,7 +150,6 @@ const drawMap = () => {
         for (const map of maps.value) {
           const nx = (x - canvas.value.width / 2) * map.frequency;
           const ny = (y - canvas.value.height / 2) * map.frequency;
-          console.log(nx);
           let value = map.amplitude * noiseFunction(nx, ny);
 
           value += 1.0;
@@ -142,11 +177,48 @@ const drawMap = () => {
 };
 
 const resizeWindow = () => {
-  if (canvas.value) {
-    canvas.value.width = document.body.clientWidth;
-    canvas.value.height = document.body.clientHeight;
+  if (!canvas.value) {
+    console.error('Cannot find canvas!');
+    return;
   }
-  drawMap();
+
+  canvas.value.width = document.body.clientWidth;
+  canvas.value.height = document.body.clientHeight;
+
+  if (window.Worker) {
+    const worker = new Worker('worker.ts');
+
+    worker.onmessage = (e: MessageEvent<number[]>) => {
+      const ctx = canvas.value?.getContext('2d');
+      if (canvas.value && ctx) {
+        for (let y = 0; y < canvas.value.height; y++) {
+          for (let x = 0; x < canvas.value.width; x++) {
+            const rgb = e.data[y * canvas.value.width + x];
+
+            if (rgb < 65) {
+              ctx.fillStyle = `rgba(${0},${0},${rgb},1.0)`;
+            } else if (rgb < 181) {
+              ctx.fillStyle = `rgba(${0},${rgb},${0},1.0)`;
+            } else {
+              ctx.fillStyle = `rgba(${rgb},${rgb},${rgb},1.0)`;
+            }
+
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+    };
+
+    worker.postMessage({
+      width: canvas.value.width,
+      height: canvas.value.height,
+      permutations: P,
+      maps: maps.value.map((m) => ({ ...m })),
+    });
+  } else {
+    console.info('Web workers not supported.');
+    drawMap();
+  }
 };
 
 onMounted(() => {
