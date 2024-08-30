@@ -90,7 +90,7 @@ function Noise2D(x: number, y: number, z: number, P: number[]) {
 	return Lerp(w, r0, r1);
 }
 
-onmessage = (e: MessageEvent<WorkerInput>) => {
+addEventListener("message", (e: MessageEvent<WorkerInput>) => {
 	const { width, height, permutations, maps } = e.data;
 	const result = new Array(width * height);
 
@@ -116,4 +116,4 @@ onmessage = (e: MessageEvent<WorkerInput>) => {
 	}
 
 	postMessage(result);
-};
+});
